@@ -9,4 +9,3 @@ The intention for this app is to provide cast and crew with a easy way to check 
 - Check all of your assigned costumes, props, and other items
 - Review your blocking for each scene
 
-# performing-arts-manager-mobile
