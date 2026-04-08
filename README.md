@@ -1,4 +1,4 @@
-## Performing Arts Manager - Mobile
+Performing Arts Manager - Mobile
 ---
 A mobile frontend for [Performing Arts Manager](https://github.com/Mindstormman06/performing-arts-manager) built in React Native.
 

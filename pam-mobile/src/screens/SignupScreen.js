@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
-import { TextInput, Button, Text, HelperText } from 'react-native-paper';
+import { View, KeyboardAvoidingView, Platform, ScrollView, Alert, Text } from 'react-native';
+import { TextInput, Button, HelperText } from 'react-native-paper';
 
 import { apiService } from '../services/api';
 
@@ -23,9 +23,9 @@ export default function SignupScreen({ navigation }) {
 
         try {
             await apiService.signup({ fname, lname, email, password });
-            
+
             Alert.alert("Success", "Account created successfully! Please log in.");
-            
+
             navigation.navigate('Login');
         } catch (err) {
             setError(err.message || 'Failed to create account');
@@ -37,99 +37,79 @@ export default function SignupScreen({ navigation }) {
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.container}
+            className="flex-1 bg-gray-100"
         >
-            <ScrollView contentContainerStyle={styles.scrollContainer}>
-                <Text variant="displaySmall" style={styles.title}>
+            <ScrollView
+                className="flex-1"
+                contentContainerClassName="flex-grow justify-center px-5 py-8"
+            >
+                <Text className="mb-8 text-center text-4xl font-bold text-gray-800">
                     Create Account
                 </Text>
 
-                <TextInput
-                    label="First Name"
-                    value={fname}
-                    onChangeText={setFname}
-                    mode="outlined"
-                    style={styles.input}
-                />
+                <View className="mb-2">
+                    <TextInput
+                        label="First Name"
+                        value={fname}
+                        onChangeText={setFname}
+                        mode="outlined"
+                    />
+                </View>
 
-                <TextInput
-                    label="Last Name"
-                    value={lname}
-                    onChangeText={setLname}
-                    mode="outlined"
-                    style={styles.input}
-                />
+                <View className="mb-2">
+                    <TextInput
+                        label="Last Name"
+                        value={lname}
+                        onChangeText={setLname}
+                        mode="outlined"
+                    />
+                </View>
 
-                <TextInput
-                    label="Email"
-                    value={email}
-                    onChangeText={setEmail}
-                    mode="outlined"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    style={styles.input}
-                />
+                <View className="mb-2">
+                    <TextInput
+                        label="Email"
+                        value={email}
+                        onChangeText={setEmail}
+                        mode="outlined"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                    />
+                </View>
 
-                <TextInput
-                    label="Password"
-                    value={password}
-                    onChangeText={setPassword}
-                    mode="outlined"
-                    secureTextEntry
-                    style={styles.input}
-                />
+                <View className="mb-2">
+                    <TextInput
+                        label="Password"
+                        value={password}
+                        onChangeText={setPassword}
+                        mode="outlined"
+                        secureTextEntry
+                    />
+                </View>
 
                 <HelperText type="error" visible={!!error}>
                     {error}
                 </HelperText>
 
-                <Button
-                    mode="contained"
-                    onPress={handleSignup}
-                    loading={loading}
-                    disabled={loading}
-                    style={styles.button}
-                >
-                    Sign Up
-                </Button>
+                <View className="mt-2">
+                    <Button
+                        mode="contained"
+                        onPress={handleSignup}
+                        loading={loading}
+                        disabled={loading}
+                    >
+                        Sign Up
+                    </Button>
+                </View>
 
-                <Button
-                    mode="text"
-                    onPress={() => navigation.navigate('Login')}
-                    style={styles.linkButton}
-                >
-                    Already have an account? Log in
-                </Button>
+                <View className="mt-3">
+                    <Button
+                        mode="text"
+                        onPress={() => navigation.navigate('Login')}
+                    >
+                        Already have an account? Log in
+                    </Button>
+                </View>
             </ScrollView>
         </KeyboardAvoidingView>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f5f5f5',
-    },
-    scrollContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        padding: 20,
-    },
-    title: {
-        textAlign: 'center',
-        marginBottom: 30,
-        fontWeight: 'bold',
-        color: '#333',
-    },
-    input: {
-        marginBottom: 10,
-        backgroundColor: '#fff',
-    },
-    button: {
-        marginTop: 10,
-        paddingVertical: 5,
-    },
-    linkButton: {
-        marginTop: 15,
-    },
-});

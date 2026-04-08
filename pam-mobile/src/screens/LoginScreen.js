@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
-import { View, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
-import { TextInput, Button, Text, HelperText } from 'react-native-paper';
+import { View, KeyboardAvoidingView, Platform, Text } from 'react-native';
+import { TextInput, Button, HelperText } from 'react-native-paper';
 import { AuthContext } from '../context/AuthContext';
 
 export default function LoginScreen({ navigation }) {
@@ -31,84 +31,58 @@ export default function LoginScreen({ navigation }) {
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.container}
+            className="flex-1 bg-gray-100"
         >
-            <View style={styles.formContainer}>
-                <Text variant="displaySmall" style={styles.title}>
+            <View className="flex-1 justify-center px-5">
+                <Text className="mb-10 text-center text-4xl font-bold text-gray-800">
                     Performing Arts Manager
                 </Text>
 
-                <TextInput
-                    label="Email"
-                    value={email}
-                    onChangeText={setEmail}
-                    mode="outlined"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    style={styles.input}
-                />
+                <View className="mb-2">
+                    <TextInput
+                        label="Email"
+                        value={email}
+                        onChangeText={setEmail}
+                        mode="outlined"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                    />
+                </View>
 
-                <TextInput
-                    label="Password"
-                    value={password}
-                    onChangeText={setPassword}
-                    mode="outlined"
-                    secureTextEntry
-                    style={styles.input}
-                />
+                <View className="mb-2">
+                    <TextInput
+                        label="Password"
+                        value={password}
+                        onChangeText={setPassword}
+                        mode="outlined"
+                        secureTextEntry
+                    />
+                </View>
 
-                {/* React Native Paper's built-in error message display */}
                 <HelperText type="error" visible={!!error}>
                     {error}
                 </HelperText>
 
-                <Button
-                    mode="contained"
-                    onPress={handleLogin}
-                    loading={loading}
-                    disabled={loading}
-                    style={styles.button}
-                >
-                    Login
-                </Button>
+                <View className="mt-2">
+                    <Button
+                        mode="contained"
+                        onPress={handleLogin}
+                        loading={loading}
+                        disabled={loading}
+                    >
+                        Login
+                    </Button>
+                </View>
 
-                <Button
-                    mode="text"
-                    onPress={() => navigation.navigate('Signup')}
-                    style={styles.linkButton}
-                >
-                    Don't have an account? Sign up
-                </Button>
+                <View className="mt-3">
+                    <Button
+                        mode="text"
+                        onPress={() => navigation.navigate('Signup')}
+                    >
+                        Don't have an account? Sign up
+                    </Button>
+                </View>
             </View>
         </KeyboardAvoidingView>
     )
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f5f5f5', 
-    },
-    formContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        padding: 20,
-    },
-    title: {
-        textAlign: 'center',
-        marginBottom: 40,
-        fontWeight: 'bold',
-        color: '#333',
-    },
-    input: {
-        marginBottom: 10,
-        backgroundColor: '#fff',
-    },
-    button: {
-        marginTop: 10,
-        paddingVertical: 5,
-    },
-    linkButton: {
-        marginTop: 15,
-    },
-});

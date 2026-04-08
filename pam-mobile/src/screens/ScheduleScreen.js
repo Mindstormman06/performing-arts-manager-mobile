@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, StyleSheet, FlatList } from 'react-native';
-import { Text, Card, ActivityIndicator, Appbar, HelperText } from 'react-native-paper';
+import { View, FlatList, Text } from 'react-native';
+import { Card, ActivityIndicator, Appbar } from 'react-native-paper';
 
 import { apiService } from '../services/api';
 import { AuthContext } from '../context/AuthContext';
 
 export default function ScheduleScreen() {
-    const { logout } = useContext(AuthContext); 
+    const { logout } = useContext(AuthContext);
     const [schedules, setSchedules] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -15,9 +15,9 @@ export default function ScheduleScreen() {
     const fetchSchedule = async () => {
         try {
             setError('');
-            const response = await apiService.getPersonalSchedule(); 
-            
-            setSchedules(response.data || []); 
+            const response = await apiService.getPersonalSchedule();
+
+            setSchedules(response.data || []);
         } catch (err) {
             setError(err.message || 'Could not load schedule');
         } finally {
@@ -37,25 +37,26 @@ export default function ScheduleScreen() {
 
     const renderItem = ({ item }) => {
         const eventContextName = item.Show?.title || item.Organization?.name || 'General Event';
-        
         const eventDate = new Date(item.start_time).toLocaleString();
 
         return (
-            <Card style={styles.card} mode="elevated">
-                <Card.Content>
-                    <Text variant="titleMedium" style={styles.cardTitle}>
-                        {eventContextName}
-                    </Text>
-                    <Text variant="bodyMedium">
-                        Start Time: {eventDate}
-                    </Text>
-                </Card.Content>
-            </Card>
+            <View className="mb-3">
+                <Card mode="elevated">
+                    <Card.Content>
+                        <Text className="mb-1 text-lg font-bold text-gray-900">
+                            {eventContextName}
+                        </Text>
+                        <Text className="text-base text-gray-700">
+                            Start Time: {eventDate}
+                        </Text>
+                    </Card.Content>
+                </Card>
+            </View>
         );
     };
 
     return (
-        <View style={styles.container}>
+        <View className="flex-1 bg-gray-100">
             {/* Top Navigation Bar */}
             <Appbar.Header elevated>
                 <Appbar.Content title="My Schedule" />
@@ -64,61 +65,30 @@ export default function ScheduleScreen() {
             </Appbar.Header>
 
             {loading ? (
-                <View style={styles.centerContainer}>
+                <View className="flex-1 items-center justify-center">
                     <ActivityIndicator animating={true} size="large" />
                 </View>
             ) : error ? (
-                <View style={styles.centerContainer}>
-                    <HelperText type="error" visible={true} style={styles.errorText}>
+                <View className="flex-1 items-center justify-center px-4">
+                    <Text className="text-center text-base text-red-600">
                         {error}
-                    </HelperText>
+                    </Text>
                 </View>
             ) : (
                 <FlatList
                     data={schedules}
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={renderItem}
-                    contentContainerStyle={styles.listContainer}
+                    contentContainerClassName="p-4"
                     onRefresh={onRefresh}
                     refreshing={refreshing}
                     ListEmptyComponent={
-                        <Text style={styles.emptyText}>You have no scheduled events.</Text>
+                        <Text className="mt-10 text-center text-base text-gray-500">
+                            You have no scheduled events.
+                        </Text>
                     }
                 />
             )}
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f5f5f5',
-    },
-    centerContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    listContainer: {
-        padding: 16,
-    },
-    card: {
-        marginBottom: 12,
-        backgroundColor: '#fff',
-    },
-    cardTitle: {
-        fontWeight: 'bold',
-        marginBottom: 4,
-    },
-    errorText: {
-        fontSize: 16,
-        textAlign: 'center',
-    },
-    emptyText: {
-        textAlign: 'center',
-        marginTop: 40,
-        color: '#666',
-        fontSize: 16,
-    },
-});
