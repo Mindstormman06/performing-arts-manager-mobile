@@ -10,6 +10,41 @@ const getAuthHeader = async () => {
     return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+const normalizeArray = (payload) => {
+    if (Array.isArray(payload)) {
+        return payload;
+    }
+
+    if (Array.isArray(payload?.data)) {
+        return payload.data;
+    }
+
+    if (Array.isArray(payload?.items)) {
+        return payload.items;
+    }
+
+    if (Array.isArray(payload?.results)) {
+        return payload.results;
+    }
+
+    if (Array.isArray(payload?.rows)) {
+        return payload.rows;
+    }
+
+    if (Array.isArray(payload?.payload)) {
+        return payload.payload;
+    }
+
+    if (Array.isArray(payload?.payload?.data)) {
+        return payload.payload.data;
+    }
+
+    return [];
+};
+
+const getOrganizationId = (org) => org?.id ?? org?.org_id ?? org?.orgId ?? org?.organization_id ?? org?.organizationId;
+const getShowId = (show) => show?.id ?? show?.show_id ?? show?.showId;
+
 export const apiService = {
 
     async login(email, password) {
@@ -90,7 +125,109 @@ export const apiService = {
         }
 
         return data;
-    
+
+    },
+
+    async getMyOrganizations() {
+        const headers = await getAuthHeader();
+
+        const response = await fetch(`${BASE_URL}/orgs/my`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                ...headers,
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to fetch organizations');
+        }
+
+        return data;
+    },
+
+    async getUserShows(orgId) {
+        const headers = await getAuthHeader();
+        const encodedOrgId = encodeURIComponent(orgId);
+
+        const queryKeys = ['orgId', 'organizationId', 'org_id'];
+        let lastError = null;
+
+        for (const key of queryKeys) {
+            const response = await fetch(`${BASE_URL}/shows/user?${key}=${encodedOrgId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...headers,
+                },
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                return data;
+            }
+
+            lastError = new Error(data.message || 'Failed to fetch user shows');
+        }
+
+        throw lastError || new Error('Failed to fetch user shows');
+    },
+
+    async getShowDashboard(showId) {
+        const headers = await getAuthHeader();
+        const encodedShowId = encodeURIComponent(showId);
+
+        const response = await fetch(`${BASE_URL}/shows/${encodedShowId}/dashboard`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                ...headers,
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to fetch show dashboard');
+        }
+
+        return data;
+    },
+
+    async getMyShowsAcrossOrganizations() {
+        const organizationsResponse = await this.getMyOrganizations();
+        const organizations = normalizeArray(organizationsResponse);
+        const organizationIds = organizations
+            .map(getOrganizationId)
+            .filter((orgId) => orgId !== undefined && orgId !== null);
+
+        if (organizationIds.length === 0) {
+            return [];
+        }
+
+        const showResponses = await Promise.allSettled(
+            organizationIds.map((orgId) => this.getUserShows(orgId))
+        );
+
+        const uniqueShows = new Map();
+
+        showResponses.forEach((result) => {
+            if (result.status !== 'fulfilled') {
+                return;
+            }
+
+            normalizeArray(result.value).forEach((show) => {
+                const key = getShowId(show) ?? `${show.title ?? 'untitled-show'}-${show.org_id ?? show.orgId ?? show.organization_id ?? show.organizationId ?? 'unknown-org'}`;
+                if (!uniqueShows.has(key)) {
+                    uniqueShows.set(key, show);
+                }
+            });
+        });
+
+        return Array.from(uniqueShows.values());
     }
 
 }

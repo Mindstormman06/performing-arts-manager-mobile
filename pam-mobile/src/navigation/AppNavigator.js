@@ -7,7 +7,9 @@ import { AuthContext } from '../context/AuthContext';
 
 import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
+import LandingScreen from '../screens/LandingScreen';
 import ScheduleScreen from '../screens/ScheduleScreen';
+import ShowDashboardScreen from '../screens/ShowDashboardScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -22,18 +24,24 @@ export default function AppNavigator() {
         );
     }
 
+    if (user) {
+        return (
+            <NavigationContainer>
+                <Stack.Navigator id="root-stack" screenOptions={{ headerShown: false }}>
+                    <Stack.Screen id="landing-screen" name="Landing" component={LandingScreen} />
+                    <Stack.Screen id="schedule-screen" name="Schedule" component={ScheduleScreen} />
+                    <Stack.Screen id="show-dashboard-screen" name="ShowDashboard" component={ShowDashboardScreen} />
+                </Stack.Navigator>
+            </NavigationContainer>
+        );
+    }
+
     return (
         <NavigationContainer>
-            <Stack.Navigator screenOptions={{ headerShown: false }}>
-                { user ? (
-                    <Stack.Screen name="Schedule" component={ScheduleScreen} />
-                ) : (
-                    <>
-                        <Stack.Screen name="Login" component={LoginScreen} />
-                        <Stack.Screen name="Signup" component={SignupScreen} />
-                    </>
-                )}
+            <Stack.Navigator id="root-stack" screenOptions={{ headerShown: false }}>
+                <Stack.Screen id="login-screen" name="Login" component={LoginScreen} />
+                <Stack.Screen id="signup-screen" name="Signup" component={SignupScreen} />
             </Stack.Navigator>
         </NavigationContainer>
-    )
+    );
 }
