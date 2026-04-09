@@ -35,7 +35,12 @@ export default function ShowDashboardScreen() {
             return 'TBD';
         }
 
-        return parsed.toLocaleString();
+        return parsed.toLocaleString(undefined, {
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+        });
     };
 
     const fetchDashboard = useCallback(async () => {
@@ -168,4 +173,3 @@ export default function ShowDashboardScreen() {
         </View>
     );
 }
-

@@ -119,20 +119,56 @@ export default function LandingScreen() {
         });
     }, [myShows]);
 
+    const formatDateTime = (value) => {
+        if (!value) {
+            return 'TBD';
+        }
+
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) {
+            return 'TBD';
+        }
+
+        return parsed.toLocaleString(undefined, {
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+        });
+    };
+
+    const getEventContextText = (event) => {
+        const showName = event?.Show?.title
+            || event?.show?.title
+            || event?.show_title
+            || event?.showName;
+
+        if (showName) {
+            return showName;
+        }
+
+        const orgName = event?.Organization?.name;
+        if (orgName) {
+            return `Org Event: ${orgName}`;
+        }
+
+        return 'General Event';
+    };
+
     const renderEventItem = ({ item }) => {
-        const eventContextName = item.Show?.title || item.Organization?.name || 'General Event';
-        const eventDate = new Date(item.start_time).toLocaleString();
+        const eventTitle = item.title || 'Untitled event';
+        const eventDate = formatDateTime(item.start_time);
+        const eventLocation = item.location || item.venue || '';
+        const eventContextText = getEventContextText(item);
 
         return (
             <View className="mb-3">
                 <Card mode="elevated">
                     <Card.Content>
-                        <Text className="mb-1 text-lg font-bold text-gray-900">
-                            {eventContextName}
-                        </Text>
-                        <Text className="text-base text-gray-700">
-                            Start Time: {eventDate}
-                        </Text>
+                        <Text className="font-semibold text-gray-900">{eventTitle}</Text>
+                        <Text className="text-sm text-gray-700">{eventDate}</Text>
+                        {eventLocation ? <Text className="text-sm text-gray-700">{eventLocation}</Text> : null}
+                        <Text className="mt-1 text-sm font-semibold text-blue-700">{eventContextText}</Text>
                     </Card.Content>
                 </Card>
             </View>
@@ -172,49 +208,45 @@ export default function LandingScreen() {
                     <Text className="text-center text-base text-red-600">{error}</Text>
                 </View>
             ) : (
-                <View className="flex-1 px-4 pt-4 pb-6">
-                    <View style={{ flex: 1 }}>
-                        <Text className="mb-2 text-lg font-semibold text-gray-900">Upcoming Events</Text>
-                        <FlatList
-                            data={upcomingEvents}
-                            keyExtractor={(item, index) => (item.id ? item.id.toString() : `event-${index}`)}
-                            renderItem={renderEventItem}
-                            scrollEnabled={false}
-                            ListEmptyComponent={
-                                <Text className="mt-4 text-base text-gray-500">
+                <FlatList
+                    data={sortedShows}
+                    keyExtractor={(item, index) => {
+                        const showId = getShowId(item);
+                        const showTitle = getShowTitle(item);
+                        return showId ? showId.toString() : `${showTitle}-${index}`;
+                    }}
+                    renderItem={renderShowItem}
+                    contentContainerClassName="px-4 pt-4 pb-6"
+                    onRefresh={onRefresh}
+                    refreshing={refreshing}
+                    showsVerticalScrollIndicator={false}
+                    ListHeaderComponent={(
+                        <View>
+                            <Text className="mb-2 text-lg font-semibold text-gray-900">Upcoming Events</Text>
+                            {upcomingEvents.length > 0 ? upcomingEvents.map((item, index) => (
+                                <React.Fragment key={item.id ? item.id.toString() : `upcoming-${index}`}>
+                                    {renderEventItem({ item })}
+                                </React.Fragment>
+                            )) : (
+                                <Text className="mt-1 mb-4 text-base text-gray-500">
                                     No upcoming events in your schedule.
                                 </Text>
-                            }
-                        />
-                    </View>
+                            )}
 
-                    <Button className="mb-4" mode="contained" onPress={() => navigation.navigate('Schedule')}>
-                        Go to Full Schedule
-                    </Button>
+                            <Button className="mb-4" mode="contained" onPress={() => navigation.navigate('Schedule')}>
+                                Go to Full Schedule
+                            </Button>
 
-                    <View style={{ flex: 2 }}>
-                        <Text className="mb-2 text-lg font-semibold text-gray-900">My Shows</Text>
-                        <FlatList
-                            data={sortedShows}
-                            keyExtractor={(item, index) => {
-                                const showId = getShowId(item);
-                                const showTitle = getShowTitle(item);
-                                return showId ? showId.toString() : `${showTitle}-${index}`;
-                            }}
-                            renderItem={renderShowItem}
-                            onRefresh={onRefresh}
-                            refreshing={refreshing}
-                            showsVerticalScrollIndicator={false}
-                            ListEmptyComponent={
-                                <Text className="mt-4 text-base text-gray-500">
-                                    You are not assigned to any shows yet.
-                                </Text>
-                            }
-                        />
-                    </View>
-                </View>
+                            <Text className="mb-2 text-lg font-semibold text-gray-900">My Shows</Text>
+                        </View>
+                    )}
+                    ListEmptyComponent={
+                        <Text className="mt-2 text-base text-gray-500">
+                            You are not assigned to any shows yet.
+                        </Text>
+                    }
+                />
             )}
         </View>
     );
 }
-

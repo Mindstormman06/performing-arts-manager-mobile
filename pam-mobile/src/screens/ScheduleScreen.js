@@ -12,12 +12,68 @@ export default function ScheduleScreen() {
     const [error, setError] = useState('');
     const [refreshing, setRefreshing] = useState(false);
 
+    const normalizeArray = (payload) => {
+        if (Array.isArray(payload)) {
+            return payload;
+        }
+
+        if (Array.isArray(payload?.data)) {
+            return payload.data;
+        }
+
+        if (Array.isArray(payload?.items)) {
+            return payload.items;
+        }
+
+        if (Array.isArray(payload?.results)) {
+            return payload.results;
+        }
+
+        return [];
+    };
+
+    const formatDateTime = (value) => {
+        if (!value) {
+            return 'TBD';
+        }
+
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) {
+            return 'TBD';
+        }
+
+        return parsed.toLocaleString(undefined, {
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+        });
+    };
+
+    const getEventContextText = (event) => {
+        const showName = event?.Show?.title
+            || event?.show?.title
+            || event?.show_title
+            || event?.showName;
+
+        if (showName) {
+            return showName;
+        }
+
+        const orgName = event?.Organization?.name;
+        if (orgName) {
+            return `Org Event: ${orgName}`;
+        }
+
+        return 'General Event';
+    };
+
     const fetchSchedule = async () => {
         try {
             setError('');
             const response = await apiService.getPersonalSchedule();
 
-            setSchedules(response.data || []);
+            setSchedules(normalizeArray(response));
         } catch (err) {
             setError(err.message || 'Could not load schedule');
         } finally {
@@ -36,19 +92,19 @@ export default function ScheduleScreen() {
     };
 
     const renderItem = ({ item }) => {
-        const eventContextName = item.Show?.title || item.Organization?.name || 'General Event';
-        const eventDate = new Date(item.start_time).toLocaleString();
+        const eventTitle = item.title || 'Untitled event';
+        const eventDate = formatDateTime(item.start_time);
+        const eventLocation = item.location || item.venue || '';
+        const eventContextText = getEventContextText(item);
 
         return (
             <View className="mb-3">
                 <Card mode="elevated">
                     <Card.Content>
-                        <Text className="mb-1 text-lg font-bold text-gray-900">
-                            {eventContextName}
-                        </Text>
-                        <Text className="text-base text-gray-700">
-                            Start Time: {eventDate}
-                        </Text>
+                        <Text className="font-semibold text-gray-900">{eventTitle}</Text>
+                        <Text className="text-sm text-gray-700">{eventDate}</Text>
+                        {eventLocation ? <Text className="text-sm text-gray-700">{eventLocation}</Text> : null}
+                        <Text className="mt-1 text-sm font-semibold text-blue-700">{eventContextText}</Text>
                     </Card.Content>
                 </Card>
             </View>
@@ -77,7 +133,7 @@ export default function ScheduleScreen() {
             ) : (
                 <FlatList
                     data={schedules}
-                    keyExtractor={(item) => item.id.toString()}
+                    keyExtractor={(item, index) => (item.id ? item.id.toString() : `event-${index}`)}
                     renderItem={renderItem}
                     contentContainerClassName="p-4"
                     onRefresh={onRefresh}
